@@ -19,6 +19,7 @@ export function useAuth() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [session, setSession] = useState<Session | null>(null)
+  const [error, setError] = useState<any>(null)
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -41,97 +42,99 @@ export function useAuth() {
   }
 
   useEffect(() => {
-    let isMounted = true
+    let isMounted = true;
 
-    // Check initial session
+    // Initial session check
     const checkSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
-        if (error) {
-          console.error('Session check error:', error)
-          if (isMounted) {
-            setSession(null)
-            setUser(null)
-            setUserProfile(null)
-            setLoading(false)
-          }
-          return
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (process.env.NODE_ENV !== 'production') {
+          console.debug('useAuth getSession:', { session, error });
         }
-        
+        if (error) {
+          if (process.env.NODE_ENV !== 'production') console.error('Session check error:', error);
+          setError(error);
+          if (isMounted) {
+            setSession(null);
+            setUser(null);
+            setUserProfile(null);
+            setLoading(false);
+          }
+          return;
+        }
         if (isMounted) {
           if (session?.user) {
-            console.log('Found existing session:', session.user.email)
-            setSession(session)
-            setUser(session.user)
-            
+            if (process.env.NODE_ENV !== 'production') console.debug('Found existing session:', session.user.email);
+            setSession(session);
+            setUser(session.user);
             // Fetch user profile with role
-            const profile = await fetchUserProfile(session.user.id)
-            if (profile) {
-              setUserProfile(profile)
-            }
+            const profile = await fetchUserProfile(session.user.id);
+            if (profile) setUserProfile(profile);
           } else {
-            console.log('No existing session')
-            setSession(null)
-            setUser(null)
-            setUserProfile(null)
+            if (process.env.NODE_ENV !== 'production') console.debug('No existing session');
+            setSession(null);
+            setUser(null);
+            setUserProfile(null);
           }
-          setLoading(false)
+          setLoading(false);
         }
       } catch (error) {
-        console.error('Session check error:', error)
+        if (process.env.NODE_ENV !== 'production') console.error('Session check error:', error);
+        setError(error);
         if (isMounted) {
-          setSession(null)
-          setUser(null)
-          setUserProfile(null)
-          setLoading(false)
+          setSession(null);
+          setUser(null);
+          setUserProfile(null);
+          setLoading(false);
         }
       }
-    }
+    };
 
-    checkSession()
+    checkSession();
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth event:', event, session?.user?.email)
-        
+        if (process.env.NODE_ENV !== 'production') {
+          console.debug('Auth event:', event, session?.user?.email);
+        }
         if (isMounted) {
           if (event === 'SIGNED_OUT') {
-            setSession(null)
-            setUser(null)
-            setUserProfile(null)
+            setSession(null);
+            setUser(null);
+            setUserProfile(null);
           } else if (session?.user) {
-            setSession(session)
-            setUser(session.user)
-            
+            setSession(session);
+            setUser(session.user);
             // Fetch user profile with role
-            const profile = await fetchUserProfile(session.user.id)
-            if (profile) {
-              setUserProfile(profile)
-            }
+            const profile = await fetchUserProfile(session.user.id);
+            if (profile) setUserProfile(profile);
           } else {
-            setSession(null)
-            setUser(null)
-            setUserProfile(null)
+            setSession(null);
+            setUser(null);
+            setUserProfile(null);
           }
-          setLoading(false)
+          setLoading(false);
         }
       }
-    )
+    );
 
     return () => {
-      isMounted = false
-      subscription.unsubscribe()
-    }
-  }, [])
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
-  return { 
-    user, 
-    userProfile,
-    loading, 
-    session,
-    isAuthenticated: !!user && !!session
+  if (process.env.NODE_ENV !== 'production') {
+    console.debug('useAuth state:', { user, userProfile, loading, session, error });
   }
+  return {
+    user,
+    userProfile,
+    loading,
+    session,
+    error,
+    isAuthenticated: !!user && !!session
+  };
 }
 

@@ -1,21 +1,21 @@
 // Configuration for the application
 export const config = {
   supabase: {
-    url: import.meta.env.VITE_SUPABASE_URL || 'https://your-project-ref.supabase.co',
-    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
+    url: import.meta.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project-ref.supabase.co',
+    anonKey: import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key'
   },
   admin: {
-    code: import.meta.env.VITE_ADMIN_CODE || 'Createrkkrishavya'
+    code: import.meta.env.NEXT_PUBLIC_ADMIN_CODE || 'Createrkkrishavya'
   },
   gemini: {
-    apiKey: import.meta.env.VITE_GEMINI_API_KEY || 'your-gemini-api-key'
+    apiKey: import.meta.env.NEXT_PUBLIC_GEMINI_API_KEY || 'your-gemini-api-key'
   },
   moderation: {
-    enabled: import.meta.env.VITE_ENABLE_MODERATION === 'true'
+    enabled: import.meta.env.NEXT_PUBLIC_ENABLE_MODERATION === 'true'
   },
   app: {
     name: 'U-Fresher ❤',
     version: '1.0.0',
-    url: import.meta.env.VITE_APP_URL || 'https://U-fresher.vercel.app'
+    url: import.meta.env.NEXT_PUBLIC_APP_URL || 'https://U-fresher.vercel.app'
   }
 }

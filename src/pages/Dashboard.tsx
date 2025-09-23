@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,14 +44,41 @@ interface DashboardProps {
 type ActiveView = 'dashboard' | 'communities' | 'profile' | 'chat' | 'admin' | 'mentors' | 'collaboration';
 
 const Dashboard = ({ onLogout, onOpenClubPosts }: DashboardProps) => {
+  const router = useRouter();
+  const { user, userProfile, loading, session } = useAuth();
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
   const [selectedChatRoom, setSelectedChatRoom] = useState<string | null>(null);
-  const { user, userProfile, loading } = useAuth();
   const { toast } = useToast();
   const { stats, loading: statsLoading } = useStats();
   const { communities, loading: communitiesLoading } = useCommunities();
   const { clubs, loading: clubsLoading } = useClubs();
   const { mentorships, loading: mentorshipsLoading } = useMentorship();
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug('Dashboard router state:', router);
+    }
+  }, [router.isReady]);
+
+  useEffect(() => {
+    // Prevent redirect loops, only redirect after loading resolves and router is ready
+    if (router.isReady && !loading) {
+      if (!user || !userProfile) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.debug('Dashboard: redirecting to signin due to missing user/userProfile');
+        }
+        router.replace('/signin');
+      }
+    }
+  }, [router.isReady, loading, user, userProfile]);
+
+  // Debugging logs
+  if (process.env.NODE_ENV !== 'production') {
+    console.debug('Dashboard session:', session);
+    console.debug('Dashboard user:', user);
+    console.debug('Dashboard userProfile:', userProfile);
+    console.debug('Dashboard loading:', loading);
+  }
 
   if (loading) {
     return (
@@ -61,11 +89,6 @@ const Dashboard = ({ onLogout, onOpenClubPosts }: DashboardProps) => {
         </div>
       </div>
     );
-  }
-
-  if (!user || !userProfile) {
-    onLogout();
-    return null;
   }
 
   const handleLogout = async () => {
@@ -182,7 +205,7 @@ const Dashboard = ({ onLogout, onOpenClubPosts }: DashboardProps) => {
     <Card className="bg-slate-800/90 backdrop-blur-sm border border-slate-700 shadow-xl shadow-blue-500/10 rounded-2xl hover:shadow-2xl transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-slate-300">{title}</CardTitle>
-        <div className={`p-2 rounded-lg ${color}`}>
+        <div className={`p-2 rounded-lg ${color}`}> 
           {icon}
         </div>
       </CardHeader>
@@ -192,9 +215,9 @@ const Dashboard = ({ onLogout, onOpenClubPosts }: DashboardProps) => {
         ) : (
           <div className="text-3xl font-bold text-white mb-2">{value}</div>
         )}
-        <p className="text-xs text-slate-400">
+        <span className="text-xs text-slate-400">
           Real-time data from Supabase
-        </p>
+        </span>
       </CardContent>
     </Card>
   );
