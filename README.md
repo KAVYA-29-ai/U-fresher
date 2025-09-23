@@ -95,7 +95,7 @@ VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 
 # Admin Configuration
-VITE_ADMIN_CODE=Createrkkrishavya
+VITE_ADMIN_CODE= YOUR SECERT CODE
 
 # Gemini AI Configuration (optional)
 VITE_GEMINI_API_KEY=your-gemini-api-key
